@@ -11,12 +11,14 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
+
     implementation("com.google.code.gson:gson:2.11.0")
 }
 
 tasks.test {
     useJUnitPlatform()
 }
+
 kotlin {
     jvmToolchain(21)
 }

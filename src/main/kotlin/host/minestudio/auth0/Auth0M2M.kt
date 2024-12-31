@@ -1,37 +1,49 @@
 package host.minestudio.auth0
 
+import com.google.gson.JsonObject
+import com.google.gson.JsonParser
 import host.minestudio.auth0.util.JSONRequest
 
 class Auth0M2M(
-    val clientId: String,
-    val clientSecret: String,
-    val audience: String,
-    val domain: String
+    private val clientId: String,
+    private val clientSecret: String,
+    private val audience: String,
+    private val domain: String
 ) {
 
-    private var authToken: String = ""
-    private var authTokenType: String = ""
-    fun getAuthToken(): String {
+    var authToken: String = ""
+    var authTokenType: String = ""
+    lateinit var jsonReq: JsonObject;
+    fun getAuthToken(): JsonObject {
         if(authToken.isEmpty()) {
-            val req = JSONRequest.request(
-                "https://$domain/oauth/token",
-                "POST",
-                hashMapOf(
-                    "Content-Type" to "application/json"
-                ),
-                true,
-                """
-                    {
-                        "client_id": "$clientId",
-                        "client_secret": "$clientSecret",
-                        "audience": "$audience",
-                        "grant_type": "client_credentials"
-                    }
-                """.trimIndent().toByteArray()
-            )
-            authToken = req.get("access_token").asString
-            authTokenType = req.get("token_type").asString
+            try {
+                val body = JsonObject()
+                body.addProperty("client_id", clientId)
+                body.addProperty("client_secret", clientSecret)
+                body.addProperty("audience", audience)
+                body.addProperty("grant_type", "client_credentials")
+                val req = JSONRequest.request(
+                    "https://$domain/oauth/token",
+                    "POST",
+                    hashMapOf(
+                        "Content-Type" to "application/json"
+                    ),
+                    true,
+                    body.toString().toByteArray()
+                )
+                try {
+                    authToken = req.get("access_token").asString
+                    authTokenType = req.get("token_type").asString
+                    jsonReq = req
+                    return req;
+                } catch (e: Exception) {
+                    return req;
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                throw RuntimeException(e)
+            }
         }
-        return authToken
+        return jsonReq
     }
 }

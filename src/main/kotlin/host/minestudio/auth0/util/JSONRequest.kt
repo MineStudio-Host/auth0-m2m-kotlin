@@ -59,9 +59,10 @@ class JSONRequest private constructor() {
                             os.write(body, 0, body.size)
                         }
                     }
-                    var inputStream = con.inputStream
-                    if (con.responseCode <= 200 && con.responseCode < 299) {
-                        inputStream = con.errorStream
+                    val inputStream = if (con.responseCode !in 200..299) {
+                        con.errorStream ?: throw IOException("Error stream is null for response code: ${con.responseCode}")
+                    } else {
+                        con.inputStream ?: throw IOException("Input stream is null for response code: ${con.responseCode}")
                     }
                     return parseJSON(inputStream)
                 }
